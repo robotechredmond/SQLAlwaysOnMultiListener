@@ -172,7 +172,8 @@
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
     "publicLBName": "sqlLoadBalancer",
-    "sqlAOListener":"SQLAlwaysOnEndPointListener",
+    "sqlAOListener1":"SQLAlwaysOnEndPointListener1",
+		"sqlAOListener2":"SQLAlwaysOnEndPointListener2",
     "publicIPAddressName": "[concat(parameters('availabilitySetName'), 'PublicIp')]",
     "lbFE1": "SqlLBFE1",
     "lbFE2": "SqlLBFE2",
@@ -183,8 +184,10 @@
     "sqllbFEConfigID1": "[concat(variables('sqllbID'),'/frontendIPConfigurations/',variables('lbFE1'))]",
     "sqllbFEConfigID2": "[concat(variables('sqllbID'),'/frontendIPConfigurations/',variables('lbFE2'))]",
     "sqlBEAddressPoolID": "[concat(variables('sqllbID'),'/backendAddressPools/',variables('lbBE'))]",
-    "sqlAOProbe":"SQLAlwaysOnEndPointProbe",
-    "sqllbProbeID":"[concat(variables('sqllbID'),'/probes/',variables('sqlAOProbe'))]"
+    "sqlAOProbe1":"SQLAlwaysOnEndPointProbe1",
+    "sqllbProbeID1":"[concat(variables('sqllbID'),'/probes/',variables('sqlAOProbe1'))]",
+		"sqlAOProbe2":"SQLAlwaysOnEndPointProbe2",
+    "sqllbProbeID2":"[concat(variables('sqllbID'),'/probes/',variables('sqlAOProbe2'))]"
   },
   "resources": [
     {
@@ -237,7 +240,7 @@
 				],
 				"loadBalancingRules": [
 					{
-						"name": "[variables('sqlAOListener')]",
+						"name": "[variables('sqlAOListener1')]",
 						"properties": {
 						"frontendIPConfiguration": {
 							"id": "[variables('sqllbFEConfigID1')]"
@@ -246,7 +249,7 @@
 							"id": "[variables('sqlBEAddressPoolID')]"
 						},
 						"probe": {
-							"id": "[variables('sqllbProbeID')]"
+							"id": "[variables('sqllbProbeID1')]"
 						},
 						"protocol": "tcp",
 						"frontendPort": 1433,
@@ -255,7 +258,7 @@
 						}
 					},
           {
-						"name": "[variables('sqlAOListener')]",
+						"name": "[variables('sqlAOListener2')]",
 						"properties": {
 						"frontendIPConfiguration": {
 							"id": "[variables('sqllbFEConfigID2')]"
@@ -264,7 +267,7 @@
 							"id": "[variables('sqlBEAddressPoolID')]"
 						},
 						"probe": {
-							"id": "[variables('sqllbProbeID')]"
+							"id": "[variables('sqllbProbeID2')]"
 						},
 						"protocol": "tcp",
 						"frontendPort": 1433,
@@ -275,10 +278,19 @@
 				],
 				"probes": [
 					{
-						"name": "[variables('sqlAOProbe')]",
+						"name": "[variables('sqlAOProbe1')]",
 						"properties": {
 							"protocol": "tcp",
 							"port": 59999,
+							"intervalInSeconds": "5",
+							"numberOfProbes": "2"
+						}
+					},
+					{
+						"name": "[variables('sqlAOProbe2')]",
+						"properties": {
+							"protocol": "tcp",
+							"port": 59998,
 							"intervalInSeconds": "5",
 							"numberOfProbes": "2"
 						}
