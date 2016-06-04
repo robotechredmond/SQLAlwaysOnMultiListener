@@ -271,7 +271,7 @@
 						},
 						"protocol": "tcp",
 						"frontendPort": 1433,
-						"backendPort": 1433,
+						"backendPort": 1434,
 						"enableFloatingIP": true
 						}
 					}
