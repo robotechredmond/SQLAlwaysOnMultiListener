@@ -8,14 +8,14 @@
       "metadata": {
         "description": "The Prefix of the VM Name"
       },
-      "defaultValue": "ADVM"
+      "defaultValue": "advm"
     },
     "availabilitySetName": {
       "type": "string",
       "metadata": {
         "description": "The Available Set Name"
       },
-      "defaultValue": "ADAvailableSet"
+      "defaultValue": "adAvailabilitySet"
     },
 
     "windowsImagePublisher": {
@@ -165,7 +165,7 @@
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
     "windowsDiskSize": 128,
-    "publicLBName": "ADPublicLoadBalancer",
+    "publicLBName": "adPublicLoadBalancer",
     "publicIPAddressName": "[concat(parameters('availabilitySetName'), 'PublicIp')]",
     "lbFE": "ADLBFE",
     "lbBE": "ADLBBE",
@@ -175,7 +175,7 @@
     "rdpPort": 3389,
     "publicBEAddressPoolID": "[concat(variables('publiclbID'),'/backendAddressPools/',variables('lbBE'))]",
     "adRDPNATRuleID": "[concat(variables('publiclbID'),'/inboundNatRules/',variables('rpdNAT'))]",
-    "adDNicName": "ADMachine-Nic-",
+    "adDNicName": "adMachine-Nic-",
     "vmContainerName": "vhds"
   },
   "resources": [

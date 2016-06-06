@@ -188,7 +188,7 @@
         "typeHandlerVersion": "2.13",
 		    "autoUpgradeMinorVersion": false,
         "settings": {
-          "wmfVersion": "4.0",
+          "wmfVersion": "5.0",
 		  "modulesUrl": "[variables('sqlAOPrepareModulesURL')]",
           "configurationFunction": "[variables('sqlAOPrepareConfigurationFunction')]",
           "properties": {
@@ -226,7 +226,7 @@
 				"typeHandlerVersion": "2.13",
 				"autoUpgradeMinorVersion": false,
 				"settings": {
-					"wmfVersion": "4.0",
+					"wmfVersion": "5.0",
 					"modulesUrl": "[variables('createClusterModulesURL')]",
 					"configurationFunction": "[variables('createClusterConfigurationFunction')]",
 					"properties": {

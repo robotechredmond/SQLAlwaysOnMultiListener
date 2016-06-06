@@ -247,7 +247,7 @@
     "apiVersionVirtualMachines": "2015-06-15",
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
-    "adSubnetName": "ADStaticSubnet",
+    "adSubnetName": "adSubnet",
     "subnets": [
       {
         "name": "[variables('adSubnetName')]",
@@ -262,7 +262,7 @@
         }
       }
     ],
-    "virtualNetworkName": "WorkloadVNET",
+    "virtualNetworkName": "[concat(parameters('dnsPrefix'),'-vnet')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "adSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('adSubnetName'))]",
     "adTemplateURL": "[concat(parameters('assetLocation'),'/ADVmTemplate.json')]",
@@ -313,7 +313,7 @@
     "updateSQLCNic2Id": "[concat('Microsoft.Resources/deployments/', variables('updateSQLCNic2'))]",
     "sqlNicName2": "SqlMachine-Nic-1",
 
-    "publicLBName": "sqlLoadBalancer",
+    "publicLBName": "[concat(parameters('dnsPrefix'),'-ilb')]",
     "lbFE": "SqlLBFE",
     "lbBE": "SqlLBBE",
     "sqllbID":"[resourceId('Microsoft.Network/loadBalancers',variables('publicLBName'))]",
@@ -334,7 +334,7 @@
     "sqlCVMName1": "[concat(variables('sqlClusterVmNamePrefix'),'0')]",
     "sqlCVMName2": "[concat(variables('sqlClusterVmNamePrefix'),'0')]",
 
-    "sqlLBName": "sqlLoadBalancer",
+    "sqlLBName": "[concat(variables('sqlClusterVmNamePrefix'),'ilb')]",
 
     "sqlAOEPName": "[concat(parameters('dnsPrefix'),'-hadr')]",
     "sqlAOAGName1": "[concat(parameters('dnsPrefix'),'-ag1')]",
@@ -342,7 +342,7 @@
     "sqlAOAGName2": "[concat(parameters('dnsPrefix'),'-ag2')]",
     "sqlAOListenerName2": "[concat(parameters('dnsPrefix'),'-agl2')]",
 
-    "sqlAvailabilitySetName": "sqlAvailabilitySet"
+    "sqlAvailabilitySetName": "[concat(variables('sqlClusterVmNamePrefix'),'as')]"
   },
 
   "resources": [
