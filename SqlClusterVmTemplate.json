@@ -14,7 +14,7 @@
       "metadata": {
         "description": "The Available Set Name"
       },
-      "defaultValue": "SqlAvailableSet"
+      "defaultValue": "sqlAvailabilitySet"
     },
 
     "windowsImagePublisher": {
