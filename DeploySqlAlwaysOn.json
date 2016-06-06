@@ -44,10 +44,17 @@
       }
     },
 
-    "sqlLBIPAddress": {
+    "sqlLBIPAddress1": {
       "type": "string",
       "metadata": {
-        "description": "The VM name of Sql Witness server"
+        "description": "IP Address 1 for Load Balancer"
+      }
+    },
+
+    "sqlLBIPAddress2": {
+      "type": "string",
+      "metadata": {
+        "description": "IP Address 2 for Load Balancer"
       }
     },
 
@@ -56,14 +63,6 @@
       "metadata": {
         "description": "The Dns Server Name"
       }
-    },
-
-    "dataBaseNames": {
-      "type": "array",
-      "metadata": {
-        "description": "An array of databases name, each database will be created and added to the availability group"
-      },
-      "defaultValue": [ "testdb1", "testdb2" ]
     },
 
     "location": {
@@ -107,17 +106,31 @@
       }
     },
 
-    "sqlAlwaysOnAvailabilityGroupName": {
+    "sqlAlwaysOnAvailabilityGroupName1": {
       "type": "string",
       "metadata": {
-        "description": "sql AlwaysOn Availability Group Name"
+        "description": "sql AlwaysOn Availability Group Name 1"
+      }
+    },
+    
+    "sqlAlwaysOnAvailabilityGroupName2": {
+      "type": "string",
+      "metadata": {
+        "description": "sql AlwaysOn Availability Group Name 2"
       }
     },
 
-    "sqlAlwaysOnAvailabilityGroupListenerName": {
+    "sqlAlwaysOnAvailabilityGroupListenerName1": {
       "type": "string",
       "metadata": {
-        "description": "sql AlwaysOn Availability Group Listener Name"
+        "description": "sql AlwaysOn Availability Group Listener Name 1"
+      }
+    },
+    
+    "sqlAlwaysOnAvailabilityGroupListenerName2": {
+      "type": "string",
+      "metadata": {
+        "description": "sql AlwaysOn Availability Group Listener Name 2"
       }
     },
 
@@ -222,20 +235,25 @@
 						"sharePath":"[concat('\\\\',parameters('sqlwVMName'),'\\',parameters('sharePath'))]",
 						"nodes":["[concat(parameters('sqlVMNamePrefix'),'0')]","[concat(parameters('sqlVMNamePrefix'),'1')]"],
 						"sqlAlwaysOnEndpointName":"[parameters('sqlAlwaysOnEndpointName')]",
-						"sqlAlwaysOnAvailabilityGroupName":"[parameters('sqlAlwaysOnAvailabilityGroupName')]",
-						"sqlAlwaysOnAvailabilityGroupListenerName":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName')]",
-						"sqlAlwaysOnAvailabilityGroupListenerPort":1433,
+						"sqlAlwaysOnAvailabilityGroupName1":"[parameters('sqlAlwaysOnAvailabilityGroupName1')]",
+						"sqlAlwaysOnAvailabilityGroupListenerName1":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName1')]",
+						"sqlAlwaysOnAvailabilityGroupListenerPort1":1433,
+            "sqlAlwaysOnAvailabilityGroupListenerProbePort1": 59999,
+						"sqlAlwaysOnAvailabilityGroupName2":"[parameters('sqlAlwaysOnAvailabilityGroupName2')]",
+						"sqlAlwaysOnAvailabilityGroupListenerName2":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName2')]",
+						"sqlAlwaysOnAvailabilityGroupListenerPort2":1434,
+            "sqlAlwaysOnAvailabilityGroupListenerProbePort2": 59998,
 						"lbName":"[parameters('sqlLBName')]",
-						"lbAddress":"[parameters('sqlLBIPAddress')]",
+						"lbAddress1":"[parameters('sqlLBIPAddress1')]",
+            "lbAddress2":"[parameters('sqlLBIPAddress2')]",
 						"primaryReplica":"[concat(parameters('sqlVMNamePrefix'),'1')]",
 						"secondaryReplica":"[concat(parameters('sqlVMNamePrefix'),'0')]",
-						"databaseNames":"[parameters('databaseNames')]",
 						"dnsServerName":"[parameters('dnsServerName')]",
 						"adminCreds":{
 							"userName": "[parameters('adminUserName')]",
 							"password": "PrivateSettingsRef:adminPassword"
 						},
-						"sQLServiceCreds":{
+						"sqlServiceCreds":{
 							"userName": "[parameters('sqlServerServiceAccountUserName')]",
 							"password": "PrivateSettingsRef:sqlServerServiceAccountPassword"
 						}

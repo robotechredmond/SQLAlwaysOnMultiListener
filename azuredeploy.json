@@ -239,14 +239,6 @@
         "description": "IP address of ILB for the second SQL Server AlwaysOn listener to be created"
       },
       "defaultValue": "10.0.1.11"
-    },
-
-    "dataBaseNames": {
-      "type": "array",
-      "metadata": {
-        "description": "An array of databases name, each database will be created and added to the availability group"
-      },
-      "defaultValue": [ "testdb1", "testdb2" ]
     }
   },
   "variables": {
@@ -345,8 +337,10 @@
     "sqlLBName": "sqlLoadBalancer",
 
     "sqlAOEPName": "[concat(parameters('dnsPrefix'),'-hadr')]",
-    "sqlAOAGName": "[concat(parameters('dnsPrefix'),'-ag')]",
-    "sqlAOListenerName": "[concat(parameters('dnsPrefix'),'ag-listener')]",
+    "sqlAOAGName1": "[concat(parameters('dnsPrefix'),'-ag1')]",
+    "sqlAOListenerName1": "[concat(parameters('dnsPrefix'),'-agl1')]",
+    "sqlAOAGName2": "[concat(parameters('dnsPrefix'),'-ag2')]",
+    "sqlAOListenerName2": "[concat(parameters('dnsPrefix'),'-agl2')]",
 
     "sqlAvailabilitySetName": "sqlAvailabilitySet"
   },
@@ -706,6 +700,44 @@
           "adminUsername": { "value": "[parameters('adminUsername')]" },
           "adminPassword": { "value": "[parameters('adminPassword')]" },
           "assetLocation": { "value": "[parameters('assetLocation')]" }
+        }
+      }
+    },
+       {
+      "name": "[variables('deploySqlAlwaysOn')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('updateSQLCNic1Id')]",
+        "[variables('updateSQLCNic2Id')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deploySqlAlwaysOnTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "sqlVMNamePrefix": { "value": "[variables('sqlClusterVmNamePrefix')]" },
+          "domainName": { "value": "[parameters('domainName')]" },
+          "dnsPrefix": { "value": "[parameters('dnsPrefix')]" },
+          "sharePath": { "value": "[variables('sqlWitnessSharePath')]" },
+          "sqlwVMName": { "value": "[variables('sqlwVMName')]" },
+          "sqlLBName": { "value": "[variables('sqlLBName')]" },
+          "sqlLBIPAddress1": { "value": "[parameters('sqlLBIPAddress1')]" },
+          "sqlLBIPAddress2": { "value": "[parameters('sqlLBIPAddress2')]" },
+          "dnsServerName": { "value": "[variables('adPDCVMName')]" },
+          "location": { "value": "[parameters('location')]" },
+          "sqlServerServiceAccountUserName": { "value": "[parameters('sqlServerServiceAccountUserName')]" },
+          "sqlServerServiceAccountPassword": { "value": "[parameters('sqlServerServiceAccountPassword')]" },
+          "adminUsername": { "value": "[parameters('adminUsername')]" },
+          "adminPassword": { "value": "[parameters('adminPassword')]" },
+          "assetLocation": { "value": "[parameters('assetLocation')]" },
+          "sqlAlwaysOnEndpointName": { "value": "[variables('sqlAOEPName')]" },
+          "sqlAlwaysOnAvailabilityGroupName1": { "value": "[variables('sqlAOAGName1')]" },
+          "sqlAlwaysOnAvailabilityGroupName2": { "value": "[variables('sqlAOAGName2')]" },
+          "sqlAlwaysOnAvailabilityGroupListenerName1": { "value": "[variables('sqlAOListenerName1')]" },
+          "sqlAlwaysOnAvailabilityGroupListenerName2": { "value": "[variables('sqlAOListenerName2')]" }
         }
       }
     }
