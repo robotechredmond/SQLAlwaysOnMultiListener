@@ -300,18 +300,9 @@
     "updateVNetDNS2": "updateVNetDNS2",
     "updateVNetDNS2Id": "[concat('Microsoft.Resources/deployments/', variables('updateVNetDNS2'))]",
 
-    "updateSQLWNic": "updateSQLWNic",
-    "updateSQLWNicId": "[concat('Microsoft.Resources/deployments/', variables('updateSQLWNic'))]",
-    "sqlwNicName": "SqlWitnessMachine-Nic-0",
-    "nicTemplateURL": "[concat(parameters('assetLocation'),'/nic.json')]",
-
-    "updateSQLCNic1": "updateSQLCNic1",
-    "updateSQLCNic1Id": "[concat('Microsoft.Resources/deployments/', variables('updateSQLCNic1'))]",
     "sqlNicName1": "SqlMachine-Nic-0",
-
-    "updateSQLCNic2": "updateSQLCNic2",
-    "updateSQLCNic2Id": "[concat('Microsoft.Resources/deployments/', variables('updateSQLCNic2'))]",
     "sqlNicName2": "SqlMachine-Nic-1",
+    "sqlwNicName": "SqlWitnessMachine-Nic-0",
 
     "deploySqlWitnessShare": "deploySqlWitnessShare",
     "deploySqlWitnessShareId": "[concat('Microsoft.Resources/deployments/', variables('deploySqlWitnessShare'))]",
@@ -392,13 +383,109 @@
         }
       }
     },
+    
+    {
+      "name": "[variables('deployPrimaryAd')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('adVmDepoymentId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPrimaryAdTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "primaryADName": { "value": "[variables('adPDCVMName')]" },
+          "domainName": { "value": "[parameters('domainName')]" },
+          "location": { "value": "[parameters('location')]" },
+          "adminUsername": { "value": "[parameters('adminUsername')]" },
+          "adminPassword": { "value": "[parameters('adminPassword')]" },
+          "assetLocation": { "value": "[parameters('assetLocation')]" }
+        }
+      }
+    },
+    
+    {
+      "name": "[variables('updateVNetDNS1')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('deployPrimaryAdId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetwithDNSTemplateUri')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": { "value": "[parameters('location')]" },
+          "virtualNetworkName": { "value": "[variables('virtualNetworkName')]" },
+          "virtualNetworkAddressRange": { "value": "[parameters('virtualNetworkAddressRange')]" },
+          "subnets": { "value": "[variables('subnets')]" },
+          "dnsServerAddress": { "value": [ "[parameters('primaryAdIpAddress')]" ] }
+        }
+      }
+    },
+    
+    {
+      "name": "[variables('deploySecondaryAdName')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('updateVNetDNS1Id')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deploySecondaryAdTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "secondaryADName": { "value": "[variables('adBDCVMName')]" },
+          "domainName": { "value": "[parameters('domainName')]" },
+          "location": { "value": "[parameters('location')]" },
+          "adminUsername": { "value": "[parameters('adminUsername')]" },
+          "adminPassword": { "value": "[parameters('adminPassword')]" },
+          "assetLocation": { "value": "[parameters('assetLocation')]" }
+        }
+      }
+    },
+    
+    {
+      "name": "[variables('updateVNetDNS2')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('deploySecondaryAdNameId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetwithDNSTemplateUri')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": { "value": "[parameters('location')]" },
+          "virtualNetworkName": { "value": "[variables('virtualNetworkName')]" },
+          "virtualNetworkAddressRange": { "value": "[parameters('virtualNetworkAddressRange')]" },
+          "subnets": { "value": "[variables('subnets')]" },
+          "dnsServerAddress": { "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryIpAddress')]" ] }
+        }
+      }
+    },
+    
     {
       "name": "[variables('deploySqlClusterVms')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
         "[variables('virtualNetworkName')]",
-        "[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]"
+        "[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]",
+        "[variables('updateVNetDNS2Id')]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -428,7 +515,8 @@
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
         "[variables('virtualNetworkName')]",
-        "[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]"
+        "[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]",
+        "[variables('updateVNetDNS2Id')]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -451,238 +539,11 @@
     },
 
     {
-      "name": "[variables('deployPrimaryAd')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('adVmDepoymentId')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('deployPrimaryAdTemplateURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "primaryADName": { "value": "[variables('adPDCVMName')]" },
-          "domainName": { "value": "[parameters('domainName')]" },
-          "location": { "value": "[parameters('location')]" },
-          "adminUsername": { "value": "[parameters('adminUsername')]" },
-          "adminPassword": { "value": "[parameters('adminPassword')]" },
-          "assetLocation": { "value": "[parameters('assetLocation')]" }
-        }
-      }
-    },
-    {
-      "name": "[variables('updateVNetDNS1')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('deployPrimaryAdId')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('vnetwithDNSTemplateUri')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": { "value": "[parameters('location')]" },
-          "virtualNetworkName": { "value": "[variables('virtualNetworkName')]" },
-          "virtualNetworkAddressRange": { "value": "[parameters('virtualNetworkAddressRange')]" },
-          "subnets": { "value": "[variables('subnets')]" },
-          "dnsServerAddress": { "value": [ "[parameters('primaryAdIpAddress')]" ] }
-        }
-      }
-    },
-    {
-      "name": "[variables('deploySecondaryAdName')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('updateVNetDNS1Id')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('deploySecondaryAdTemplateURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "secondaryADName": { "value": "[variables('adBDCVMName')]" },
-          "domainName": { "value": "[parameters('domainName')]" },
-          "location": { "value": "[parameters('location')]" },
-          "adminUsername": { "value": "[parameters('adminUsername')]" },
-          "adminPassword": { "value": "[parameters('adminPassword')]" },
-          "assetLocation": { "value": "[parameters('assetLocation')]" }
-        }
-      }
-    },
-    {
-      "name": "[variables('updateVNetDNS2')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('deploySecondaryAdNameId')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('vnetwithDNSTemplateUri')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": { "value": "[parameters('location')]" },
-          "virtualNetworkName": { "value": "[variables('virtualNetworkName')]" },
-          "virtualNetworkAddressRange": { "value": "[parameters('virtualNetworkAddressRange')]" },
-          "subnets": { "value": "[variables('subnets')]" },
-          "dnsServerAddress": { "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryIpAddress')]" ] }
-        }
-      }
-    },
-    {
-      "name": "[variables('updateSQLWNic')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('updateVNetDNS1Id')]",
-        "[variables('updateVNetDNS2Id')]",
-        "[variables('deploySqlWitnessVmsId')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('nicTemplateURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "nicName": {
-            "value": "[variables('sqlwNicName')]"
-          },
-          "ipConfigurations": {
-            "value": [
-              {
-                "name": "ipconfig1",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('sqlSubnetRef')]"
-                  }
-                }
-              }
-            ]
-          },
-          "dnsServers": {
-            "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryIpAddress')]" ]
-          }
-
-        }
-      }
-    },
-    {
-      "name": "[variables('updateSQLCNic1')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('updateVNetDNS1Id')]",
-        "[variables('updateVNetDNS2Id')]",
-        "[variables('deploySqlClusterVmsId')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('nicTemplateURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "nicName": {
-            "value": "[variables('sqlNicName1')]"
-          },
-          "ipConfigurations": {
-            "value": [
-              {
-                "name": "ipconfig1",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('sqlSubnetRef')]"
-                  },
-                "loadBalancerBackendAddressPools": [
-                  {
-                    "id":"[variables('sqlBEAddressPoolID')]"
-                  }
-		 ]
-                }
-              }
-            ]
-          },
-          "dnsServers": {
-            "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryIpAddress')]" ]
-          }
-
-        }
-      }
-    },
-    {
-      "name": "[variables('updateSQLCNic2')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[variables('updateVNetDNS1Id')]",
-        "[variables('updateVNetDNS2Id')]",
-        "[variables('deploySqlClusterVmsId')]",
-        "[variables('updateSQLCNic1Id')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('nicTemplateURL')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "nicName": {
-            "value": "[variables('sqlNicName2')]"
-          },
-          "ipConfigurations": {
-            "value": [
-              {
-                "name": "ipconfig1",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('sqlSubnetRef')]"
-                  },
-                "loadBalancerBackendAddressPools": [
-                  {
-                    "id":"[variables('sqlBEAddressPoolID')]"
-                  }
-		 ]
-                }
-              }
-            ]
-          },
-          "dnsServers": {
-            "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryIpAddress')]" ]
-          }
-
-        }
-      }
-    },
-    {
       "name": "[variables('deploySqlWitnessShare')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
-        "[variables('updateSQLWNicId')]"
+        "[variables('deploySqlWitnessVmsId')]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -706,8 +567,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
-        "[variables('updateSQLCNic1Id')]",
-        "[variables('updateSQLCNic2Id')]"
+        "[variables('deploySqlClusterVmsId')]"
       ],
       "properties": {
         "mode": "Incremental",
