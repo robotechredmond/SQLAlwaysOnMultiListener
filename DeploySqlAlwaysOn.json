@@ -185,7 +185,7 @@
       "properties": {
         "publisher": "Microsoft.Powershell",
         "type": "DSC",
-        "typeHandlerVersion": "2.13",
+        "typeHandlerVersion": "2.18",
 		    "autoUpgradeMinorVersion": false,
         "settings": {
           "wmfVersion": "5.0",
@@ -223,7 +223,7 @@
 			"properties": {
 				"publisher": "Microsoft.Powershell",
 				"type": "DSC",
-				"typeHandlerVersion": "2.13",
+				"typeHandlerVersion": "2.18",
 				"autoUpgradeMinorVersion": false,
 				"settings": {
 					"wmfVersion": "5.0",
