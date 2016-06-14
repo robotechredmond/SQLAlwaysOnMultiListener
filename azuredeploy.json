@@ -275,13 +275,6 @@
     },
 
     {
-      "type": "Microsoft.Compute/availabilitySets",
-      "name": "[variables('sqlAvailabilitySetName')]",
-      "apiVersion": "[variables('apiVersionNetworks')]",
-      "location": "[resourceGroup().location]"
-    },
-  
-    {
       "name": "[variables('deployPrimaryAd')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "[variables('apiVersion')]",
