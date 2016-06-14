@@ -112,17 +112,7 @@
               "privateIPAddress": "[parameters('adIpAddress')]",
               "subnet": {
                 "id": "[parameters('subnetUri')]"
-              },
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('adLBBEAddressPoolID')]"
-                }
-              ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[variables('adRDPNATRuleID')]"
-                }
-              ]
+              }
             }
           }
         ]
