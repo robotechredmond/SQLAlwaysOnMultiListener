@@ -135,10 +135,7 @@
       "apiVersion": "[variables('apiVersionVirtualMachines')]",      
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts',variables('adStorageAccountName'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]",
-        "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
-        "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]"
       ],
       "properties": {
         "hardwareProfile": {
