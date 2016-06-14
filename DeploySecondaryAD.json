@@ -72,7 +72,7 @@
     "adNamePrefix": "[concat(parameters('namePrefix'),'-ad-')]",
     "adVMName": "[concat(variables('adNamePrefix'),'1')]",
     "adNicName": "[concat(variables('adVMName'),'-nic')]",
-    "adAvailabilitySetName": "[concat(variables('adNamePrefix'),'-as')]",
+    "adAvailabilitySetName": "[concat(variables('adNamePrefix'),'as')]",
     "adDnsPrefix": "[concat(parameters('namePrefix'),'ad')]",
 
     "adLBName": "[concat(parameters('namePrefix'),'-elb')]",
