@@ -277,7 +277,7 @@
         "typeHandlerVersion": "2.18",
 		    "autoUpgradeMinorVersion": false,
         "settings": {
-          "wmfVersion": "4.0",
+          "wmfVersion": "5.0",
           "modulesUrl": "[variables('adPDCModulesURL')]",
           "configurationFunction": "[variables('adPDCConfigurationFunction')]",
           "properties": {
