@@ -11,10 +11,6 @@
       "type": "string"
     },
 
-    "location": {
-      "type": "string"
-    },
-
     "subnetUri": {
       "type": "string"
     },
@@ -103,7 +99,7 @@
   {
       "name": "[variables('adNicName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
       ],
       "apiVersion": "[variables('apiVersionNetworks')]",
@@ -137,7 +133,7 @@
       "name": "[variables('adVMName')]",
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "[variables('apiVersionVirtualMachines')]",      
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts',variables('adStorageAccountName'))]",
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName')]",
@@ -198,7 +194,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('secondaryADName'),'/InstallDomainController')]",
       "apiVersion": "[variables('apiVersionVMExtensions')]",
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines',variables('adVMName'))]"
       ],
