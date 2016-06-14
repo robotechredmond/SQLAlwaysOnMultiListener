@@ -192,7 +192,7 @@
 
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('secondaryADName'),'/InstallDomainController')]",
+      "name": "[concat(variables('adVMName'),'/InstallDomainController')]",
       "apiVersion": "[variables('apiVersionVMExtensions')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
