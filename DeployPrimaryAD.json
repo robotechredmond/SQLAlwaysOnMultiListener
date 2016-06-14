@@ -1,84 +1,278 @@
 ﻿{
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+
   "parameters": {
-    "primaryADName": {
-      "type": "string",
-      "metadata": {
-        "description": "The VM name of Primary AD"
-      }
+
+    "namePrefix": {
+      "type": "string"
     },
 
     "domainName": {
-      "type": "string",
-      "metadata": {
-        "description": "The domain name"
-      }
+      "type": "string"
     },
 
     "location": {
-      "type": "string",
-      "allowedValues": [
-        "West US",
-        "East US",
-        "East US 2",
-        "Central US",
-        "South Central US",
-        "North Central US",
-        "North Europe",
-        "West Europe",
-        "East Asia",
-        "Southeast Asia",
-        "Japan East",
-        "Japan West",
-        "Brazil South",
-        "Australia East",
-        "Australia Southeast",
-        "Central India",
-        "South India",
-        "West India"
-      ],
-      "metadata": {
-        "description": "The region to deploy the resources into"
-      }
+      "type": "string"
+    },
+
+    "subnetUri": {
+      "type": "string"
+    },
+    
+    "adIpAddress": {
+      "type": "string"
+    },
+
+    "storageAccountType": {
+      "type": "string"
+    },
+
+    "vmSize": {
+      "type": "string"
     },
 
     "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the Administrator of the new VMs and Domain"
-      }
+      "type": "string"
     },
+
     "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The password for the Administrator account of the new VMs and Domain"
-      }
+      "type": "securestring"
     },
 
     "assetLocation": {
+      "type": "string"
+    },
+
+    "windowsImagePublisher": {
       "type": "string",
-      "metadata": {
-        "description": "The location of resources that the script is dependent on such as linked templates and DSC modules"
-      }
+      "defaultValue": "MicrosoftWindowsServer"
+    },
+    "windowsImageOffer": {
+      "type": "string",
+      "defaultValue": "WindowsServer"
+    },
+    "windowsImageSKU": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter"
+    },
+
+    "windowsImageVersion": {
+      "type": "string",
+      "defaultValue": "latest"
     }
+
   },
+
   "variables": {
+
     "apiVersion": "2015-01-01",
     "apiVersionNetworks": "2015-06-15",
     "apiVersionVirtualMachines": "2015-06-15",
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
+
+    "vmDiskSize": 128,
+
+    "adNamePrefix": "[concat(parameters('namePrefix'),'-ad-')]",
+    "adVMName": "[concat(variables('adNamePrefix'),'0')]",
+    "adNicName": "[concat(variables('adVMName'),'-nic')]",
+    "adAvailabilitySetName": "[concat(variables('adNamePrefix'),'as')]",
+    "adDnsPrefix": "[concat(parameters('namePrefix'),'ad')]",
+
+    "adLBName": "[concat(parameters('namePrefix'),'-elb')]",
+    "adPublicIPName": "[concat(parameters('namePrefix'),'-ip')]",
+    "lbFE": "[concat(parameters('namePrefix'),'-elbfe')]",
+    "lbBE": "[concat(parameters('namePrefix'),'-elbbe')]",
+    "rpdNAT": "[concat(parameters('namePrefix'),'-elbrdpnat')]",
+    "adLBID": "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]",
+    "adLBFEConfigID": "[concat(variables('adLBID'),'/frontendIPConfigurations/',variables('lbFE'))]",
+    "rdpPort": 3389,
+    "adLBBEAddressPoolID": "[concat(variables('adLBID'),'/backendAddressPools/',variables('lbBE'))]",
+    "adRDPNATRuleID": "[concat(variables('adLBID'),'/inboundNatRules/',variables('rpdNAT'))]",
+
+    "adStorageAccountName": "[concat(parameters('namePrefix'),'adstor')]",
+    "vmContainerName": "vhds",
+
     "adPDCModulesURL": "[concat(parameters('assetLocation'),'/CreateADPDC.ps1.zip')]",
     "adPDCConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC"
+
   },
   "resources": [
+
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('adStorageAccountName')]",
+      "apiVersion": "[variables('apiVersionStorage')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "accountType": "[parameters('storageAccountType')]"
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersionNetworks')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('adPublicIPName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('adDnsPrefix')]"
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('adAvailabilitySetName')]",
+      "apiVersion": "[variables('apiVersionNetworks')]",
+      "location": "[parameters('location')]"
+    },
+
+        {
+      "apiVersion": "[variables('apiVersionNetworks')]",
+      "name": "[variables('adLBName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses',variables('adPublicIPName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('lbFE')]",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('adPublicIPName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('lbBE')]"
+          }
+        ],
+        "inboundNatRules": [
+          {
+            "name": "[variables('rpdNAT')]",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('adLBFEConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": "[variables('rdpPort')]",
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "[variables('adNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]"
+      ],
+      "apiVersion": "[variables('apiVersionNetworks')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('adIpAddress')]",
+              "subnet": {
+                "id": "[parameters('subnetUri')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[variables('adLBBEAddressPoolID')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[variables('adRDPNATRuleID')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "[variables('adVMName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "[variables('apiVersionVirtualMachines')]",      
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts',variables('adStorageAccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName')]",
+        "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
+        "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('adVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[parameters('windowsImagePublisher')]",
+            "offer": "[parameters('windowsImageOffer')]",
+            "sku": "[parameters('windowsImageSKU')]",
+            "version": "[parameters('windowsImageVersion')]"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('adStorageAccountName'),'.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adVMName'), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('adStorageAccountName'),'.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adVMName'), '-datadisk1.vhd')]"
+              },
+              "name": "[concat(variables('adVMName'), '-datadisk1')]",
+              "createOption": "empty",
+              "caching": "None",
+              "diskSizeGB": "[variables('vmDiskSize')]",
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('primaryADName'),'/InstallDomainController')]",
+      "name": "[concat(variables('adVMName'),'/InstallDomainController')]",
       "apiVersion": "[variables('apiVersionVMExtensions')]",
       "location": "[parameters('location')]",
       "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines',variables('adVMName'))]"
       ],
       "properties": {
         "publisher": "Microsoft.Powershell",
@@ -105,6 +299,13 @@
       }
     }
   ],
-    "outputs": {
+
+  "outputs": {
+
+    "adVMName": {
+      "value": "[reference(variables('adVMName'))]",
+      "type": "string"
     }
+
+  }
 }
