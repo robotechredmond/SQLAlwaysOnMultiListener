@@ -131,6 +131,7 @@
 		"deploySqlAlwaysOn": "deploySqlAlwaysOn",
     "deploySqlAlwaysOnTemplateUrl": "[concat(parameters('assetLocation'),'/DeploySqlAlwaysOn.json')]",
 		"sqlClusterName": "[concat(parameters('namePrefix'),'-sql-c')]",
+		"sqlAOEPName": "[concat(parameters('namePrefix'),'-agep')",
 		"sqlAOAGName1": "[concat(parameters('namePrefix'),'-ag1')]",
 		"sqlAOAGName2": "[concat(parameters('namePrefix'),'-ag2')]",
     "sqlAOListener1":"[concat(parameters('namePrefix'),'-agl1')]",
