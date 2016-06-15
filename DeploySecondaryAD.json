@@ -73,18 +73,6 @@
     "adVMName": "[concat(variables('adNamePrefix'),'1')]",
     "adNicName": "[concat(variables('adVMName'),'-nic')]",
     "adAvailabilitySetName": "[concat(variables('adNamePrefix'),'as')]",
-    "adDnsPrefix": "[concat(parameters('namePrefix'),'ad')]",
-
-    "adLBName": "[concat(parameters('namePrefix'),'-elb')]",
-    "adPublicIPName": "[concat(parameters('namePrefix'),'-ip')]",
-    "lbFE": "[concat(parameters('namePrefix'),'-elbfe')]",
-    "lbBE": "[concat(parameters('namePrefix'),'-elbbe')]",
-    "rpdNAT": "[concat(parameters('namePrefix'),'-elbrdpnat')]",
-    "adLBID": "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]",
-    "adLBFEConfigID": "[concat(variables('adLBID'),'/frontendIPConfigurations/',variables('lbFE'))]",
-    "rdpPort": 3389,
-    "adLBBEAddressPoolID": "[concat(variables('adLBID'),'/backendAddressPools/',variables('lbBE'))]",
-    "adRDPNATRuleID": "[concat(variables('adLBID'),'/inboundNatRules/',variables('rpdNAT'))]",
 
     "adStorageAccountName": "[concat(parameters('namePrefix'),'adstor')]",
     "vmContainerName": "vhds",
