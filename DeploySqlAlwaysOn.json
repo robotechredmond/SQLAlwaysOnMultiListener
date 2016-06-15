@@ -1,191 +1,115 @@
 ﻿{
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+
   "parameters": {
-    "sqlVMNamePrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "The prefix of  VM name for Sql Cluster"
-      }
+    "sqlNamePrefix": {
+      "type": "string"
     },
 
     "domainName": {
-      "type": "string",
-      "metadata": {
-        "description": "The domain name"
-      }
+      "type": "string"
     },
 
-    "dnsPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "The DNS Prefix for the Public IP Address"
-      }
+    "namePrefix": {
+      "type": "string"
     },
 
     "sharePath": {
-      "type": "string",
-      "metadata": {
-        "description": "The share path"
-      }
+      "type": "string"
     },
 
-    "sqlwVMName": {
-      "type": "string",
-      "metadata": {
-        "description": "The VM name of Sql Witness server"
-      }
+    "sqlWitnessVMName": {
+      "type": "string"
     },
 
     "sqlLBName": {
-      "type": "string",
-      "metadata": {
-        "description": "the load balancer name for SQL Cluster"
-      }
+      "type": "string"
     },
 
     "sqlLBIPAddress1": {
-      "type": "string",
-      "metadata": {
-        "description": "IP Address 1 for Load Balancer"
-      }
+      "type": "string"
     },
 
     "sqlLBIPAddress2": {
-      "type": "string",
-      "metadata": {
-        "description": "IP Address 2 for Load Balancer"
-      }
+      "type": "string"
     },
 
     "dnsServerName": {
-      "type": "string",
-      "metadata": {
-        "description": "The Dns Server Name"
-      }
-    },
-
-    "location": {
-      "type": "string",
-      "allowedValues": [
-        "West US",
-        "East US",
-        "East US 2",
-        "Central US",
-        "South Central US",
-        "North Central US",
-        "North Europe",
-        "West Europe",
-        "East Asia",
-        "Southeast Asia",
-        "Japan East",
-        "Japan West",
-        "Brazil South",
-        "Australia East",
-        "Australia Southeast",
-        "Central India",
-        "South India",
-        "West India"
-      ],
-      "metadata": {
-        "description": "The region to deploy the resources into"
-      }
+      "type": "string"
     },
 
     "sqlServerServiceAccountUserName": {
-      "type": "string",
-      "metadata": {
-        "description": "The SQL Server Service account name"
-      }
+      "type": "string"
     },
 
-    "sqlAlwaysOnEndpointName": {
-      "type": "string",
-      "metadata": {
-        "description": "sql AlwaysOn Endpoint Name"
-      }
-    },
-
-    "sqlAlwaysOnAvailabilityGroupName1": {
-      "type": "string",
-      "metadata": {
-        "description": "sql AlwaysOn Availability Group Name 1"
-      }
-    },
-    
-    "sqlAlwaysOnAvailabilityGroupName2": {
-      "type": "string",
-      "metadata": {
-        "description": "sql AlwaysOn Availability Group Name 2"
-      }
-    },
-
-    "sqlAlwaysOnAvailabilityGroupListenerName1": {
-      "type": "string",
-      "metadata": {
-        "description": "sql AlwaysOn Availability Group Listener Name 1"
-      }
-    },
-    
-    "sqlAlwaysOnAvailabilityGroupListenerName2": {
-      "type": "string",
-      "metadata": {
-        "description": "sql AlwaysOn Availability Group Listener Name 2"
-      }
-    },
-
-    "sqlServerServiceAccountPassword":{
-			"type": "securestring",
-			"metadata": {
-				"description": "The SQL Server Service account password"
-			}
+   "sqlServerServiceAccountPassword":{
+			"type": "securestring"
 		},
 
     "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the Administrator of the new VMs and Domain"
-      }
+      "type": "string"
     },
 
     "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The password for the Administrator account of the new VMs and Domain"
-      }
+      "type": "securestring"
+    },
+
+    "sqlAlwaysOnEndpointName": {
+      "type": "string"
+    },
+
+    "sqlAlwaysOnAvailabilityGroupName1": {
+      "type": "string"
+    },
+    
+    "sqlAlwaysOnAvailabilityGroupName2": {
+      "type": "string"
+    },
+
+    "sqlAlwaysOnAvailabilityGroupListenerName1": {
+      "type": "string"
+    },
+    
+    "sqlAlwaysOnAvailabilityGroupListenerName2": {
+      "type": "string"
     },
 
     "assetLocation": {
-      "type": "string",
-      "metadata": {
-        "description": "The location of resources that the script is dependent on such as linked templates and DSC modules"
-      }
+      "type": "string"
     }
+
   },
+
   "variables": {
+
     "apiVersion": "2015-01-01",
     "apiVersionNetworks": "2015-06-15",
     "apiVersionVirtualMachines": "2015-06-15",
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
+
     "sqlAOPrepareModulesURL":"[concat(parameters('assetLocation'),'/PrepareAlwaysOnSqlServer.ps1.zip')]",
     "sqlAOPrepareConfigurationFunction": "PrepareAlwaysOnSqlServer.ps1\\PrepareAlwaysOnSqlServer",
+
     "createClusterModulesURL":"[concat(parameters('assetLocation'),'/CreateFailoverCluster.ps1.zip')]",
     "createClusterConfigurationFunction": "CreateFailoverCluster.ps1\\CreateFailoverCluster",
-    "clusterName": "[concat(parameters('dnsPrefix'),'-fc')]"
+    "clusterName": "[concat(parameters('namePrefix'),'-c')]"
+
   },
+
   "resources": [
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('sqlVMNamePrefix'),'0/sqlAOPrepare')]",
+      "name": "[concat(parameters('sqlNamePrefix'),'0/sqlAOPrepare')]",
       "apiVersion": "[variables('apiVersionVMExtensions')]",
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
       ],
       "properties": {
         "publisher": "Microsoft.Powershell",
         "type": "DSC",
-        "typeHandlerVersion": "2.18",
+        "typeHandlerVersion": "2.15",
 		    "autoUpgradeMinorVersion": false,
         "settings": {
           "wmfVersion": "5.0",
@@ -212,18 +136,19 @@
         }
       }
     },
+
     {
 			"type": "Microsoft.Compute/virtualMachines/extensions",
-			"name": "[concat(parameters('sqlVMNamePrefix'),'1/CreateCluster')]",
+			"name": "[concat(parameters('sqlNamePrefix'),'1/CreateCluster')]",
 			"apiVersion": "[variables('apiVersionVMExtensions')]",
-			"location": "[parameters('location')]",
+			"location": "[resourceGroup().location]",
 			"dependsOn":[
-				"[concat('Microsoft.Compute/virtualMachines/',parameters('sqlVMNamePrefix'),'0/extensions/sqlAOPrepare')]"
+				"[concat('Microsoft.Compute/virtualMachines/',parameters('sqlNamePrefix'),'0/extensions/sqlAOPrepare')]"
 			],
 			"properties": {
 				"publisher": "Microsoft.Powershell",
 				"type": "DSC",
-				"typeHandlerVersion": "2.18",
+				"typeHandlerVersion": "2.15",
 				"autoUpgradeMinorVersion": false,
 				"settings": {
 					"wmfVersion": "5.0",
@@ -231,29 +156,29 @@
 					"configurationFunction": "[variables('createClusterConfigurationFunction')]",
 					"properties": {
 						"domainName": "[parameters('domainName')]",
-						"clusterName":"[variables('clusterName')]",
-						"sharePath":"[concat('\\\\',parameters('sqlwVMName'),'\\',parameters('sharePath'))]",
-						"nodes":["[concat(parameters('sqlVMNamePrefix'),'0')]","[concat(parameters('sqlVMNamePrefix'),'1')]"],
-						"sqlAlwaysOnEndpointName":"[parameters('sqlAlwaysOnEndpointName')]",
-						"sqlAlwaysOnAvailabilityGroupName1":"[parameters('sqlAlwaysOnAvailabilityGroupName1')]",
-						"sqlAlwaysOnAvailabilityGroupListenerName1":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName1')]",
-						"sqlAlwaysOnAvailabilityGroupListenerPort1":1433,
+						"clusterName": "[variables('clusterName')]",
+						"sharePath": "[concat('\\\\',parameters('sqlWitnessVMName'),'\\',parameters('sharePath'))]",
+						"nodes": ["[concat(parameters('sqlNamePrefix'),'0')]","[concat(parameters('sqlNamePrefix'),'1')]"],
+						"sqlAlwaysOnEndpointName": "[parameters('sqlAlwaysOnEndpointName')]",
+						"sqlAlwaysOnAvailabilityGroupName1": "[parameters('sqlAlwaysOnAvailabilityGroupName1')]",
+						"sqlAlwaysOnAvailabilityGroupListenerName1": "[parameters('sqlAlwaysOnAvailabilityGroupListenerName1')]",
+						"sqlAlwaysOnAvailabilityGroupListenerPort1": 1433,
             "sqlAlwaysOnAvailabilityGroupListenerProbePort1": 59999,
-						"sqlAlwaysOnAvailabilityGroupName2":"[parameters('sqlAlwaysOnAvailabilityGroupName2')]",
-						"sqlAlwaysOnAvailabilityGroupListenerName2":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName2')]",
-						"sqlAlwaysOnAvailabilityGroupListenerPort2":1434,
+						"sqlAlwaysOnAvailabilityGroupName2": "[parameters('sqlAlwaysOnAvailabilityGroupName2')]",
+						"sqlAlwaysOnAvailabilityGroupListenerName2": "[parameters('sqlAlwaysOnAvailabilityGroupListenerName2')]",
+						"sqlAlwaysOnAvailabilityGroupListenerPort2": 1434,
             "sqlAlwaysOnAvailabilityGroupListenerProbePort2": 59998,
-						"lbName":"[parameters('sqlLBName')]",
-						"lbAddress1":"[parameters('sqlLBIPAddress1')]",
-            "lbAddress2":"[parameters('sqlLBIPAddress2')]",
-						"primaryReplica":"[concat(parameters('sqlVMNamePrefix'),'1')]",
-						"secondaryReplica":"[concat(parameters('sqlVMNamePrefix'),'0')]",
-						"dnsServerName":"[parameters('dnsServerName')]",
-						"adminCreds":{
+						"lbName": "[parameters('sqlLBName')]",
+						"lbAddress1": "[parameters('sqlLBIPAddress1')]",
+            "lbAddress2": "[parameters('sqlLBIPAddress2')]",
+						"primaryReplica": "[concat(parameters('sqlNamePrefix'),'1')]",
+						"secondaryReplica": "[concat(parameters('sqlNamePrefix'),'0')]",
+						"dnsServerName": "[parameters('dnsServerName')]",
+						"adminCreds": {
 							"userName": "[parameters('adminUserName')]",
 							"password": "PrivateSettingsRef:adminPassword"
 						},
-						"sqlServiceCreds":{
+						"sqlServiceCreds": {
 							"userName": "[parameters('sqlServerServiceAccountUserName')]",
 							"password": "PrivateSettingsRef:sqlServerServiceAccountPassword"
 						}

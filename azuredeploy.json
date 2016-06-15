@@ -370,6 +370,40 @@
           "dnsServerAddress": { "value": [ "[parameters('primaryAdIpAddress')]", "[parameters('secondaryAdIpAddress')]" ] }
         }
       }
+    },
+
+    {
+      "name": "[variables('deploySqlCluster')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[variables('vnetId')]",
+        "[variables('updateVNetDNS2Id')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deploySqlClusterTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": { "value": "[parameters('namePrefix')]" },
+          "domainName": { "value": "[parameters('domainName')]" },
+          "dnsServerName": { "value": "[reference(variables('deployPrimaryAd')).outputs.adVMName.value]" },
+          "adminUsername": { "value": "[parameters('adminUsername')]" },
+          "adminPassword": { "value": "[parameters('adminPassword')]" },
+          "sqlServerServiceAccountUserName": { "value": "[parameters('sqlServerServiceAccountUserName')]" },
+          "sqlServerServiceAccountPassword": { "value": "[parameters('sqlServerServiceAccountPassword')]" },
+          "storageAccountType": { "value": "[parameters('storageAccountType')]" },
+          "nicSubnetUri": { "value": "[variables('sqlSubnetRef')]" },
+          "lbSubnetUri": { "value": "[variables('sqlSubnetRef')]" },
+          "sqlLBIPAddress1": { "value": "[parameters('sqlLBIPAddress1')]" },
+          "sqlLBIPAddress2": { "value": "[parameters('sqlLBIPAddress2')]" },
+          "sqlVMSize": { "value": "[parameters('sqlVMSize')]" },
+          "sqlWitnessVMSize": { "value": "[parameters('sqlWitnessVMSize')]" },
+          "assetLocation": { "value": "[parameters('assetLocation')]" }
+        }
+      }
     }
 
   ],
