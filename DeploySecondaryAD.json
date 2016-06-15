@@ -202,7 +202,7 @@
   "outputs": {
 
     "adVMName": {
-      "value": "[reference(variables('adVMName'))]",
+      "value": "[variables('adVMName')]",
       "type": "string"
     }
     
