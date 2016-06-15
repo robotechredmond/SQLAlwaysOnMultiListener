@@ -5,7 +5,7 @@ This template will create a SQL Server 2014 Always On Availability Group with Mu
 +	A Virtual Network
 +	Four Storage Accounts
 +	One external load balancer for NAT'd access to RDP
-+	One internal load balancer for SQL AG Listeners
++	One internal load balancer for Two SQL AG Listeners
 +	Two VMs configured as Domain Controllers for a new forest with a single domain
 +	Three VMs in a Windows Server Cluster, two VMs run SQL Server 2014 with an availability group and the third is a File Share Witness for the Cluster
 +	Two Availability Sets one for the AD VMs, the other for the SQL and Witness VMs, the second Availability Set is configured with three Update Domains and three Fault Domains
