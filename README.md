@@ -45,4 +45,4 @@ Change working folder to the folder containing this template
 
 ```PowerShell
 
-New-AzureRmResourceGroupDeployment -ResourceGroupName "<new resourcegroup name>" -Location "<new resourcegroup location>"  -TemplateParameterFile .\azuredeploy-parameters.json -TemplateFile .\azuredeploy.json
+New-AzureRmResourceGroup -ResourceGroupName "<new resourcegroup name>" -Location "<new resourcegroup location>"  -TemplateParameterFile .\azuredeploy-parameters.json -TemplateFile .\azuredeploy.json
