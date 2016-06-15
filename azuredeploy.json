@@ -245,7 +245,7 @@
     "deploySecondaryAdId": "[concat('Microsoft.Resources/deployments/', variables('deploySecondaryAd'))]",
     
     "deploySqlClusterTemplateURL": "[concat(parameters('assetLocation'),'/DeploySqlCluster.json')]",
-    "deploySqlCluster": "deploySqlClusterVms",
+    "deploySqlCluster": "deploySqlCluster",
     "deploySqlClusterId": "[concat('Microsoft.Resources/deployments/', variables('deploySqlCluster'))]",
 
     "vnetWithDNSTemplateUri": "[concat(parameters('assetLocation'),'/vnet-with-dns-server.json')]",

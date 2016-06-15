@@ -509,9 +509,9 @@
           "assetLocation": { "value": "[parameters('assetLocation')]" },
           "sqlAlwaysOnEndpointName": { "value": "[variables('sqlAOEPName')]" },
           "sqlAlwaysOnAvailabilityGroupName1": { "value": "[variables('sqlAOAGName1')]" },
-          "sqlAlwaysOnAvailabilityGroupListenerName1": { "value": "[variables('sqlAOListenerName1')]" },
+          "sqlAlwaysOnAvailabilityGroupListenerName1": { "value": "[variables('sqlAOListener1')]" },
 					"sqlAlwaysOnAvailabilityGroupName2": { "value": "[variables('sqlAOAGName1')]" },
-          "sqlAlwaysOnAvailabilityGroupListenerName2": { "value": "[variables('sqlAOListenerName1')]" }
+          "sqlAlwaysOnAvailabilityGroupListenerName2": { "value": "[variables('sqlAOListener2')]" }
         }
       }
     }
