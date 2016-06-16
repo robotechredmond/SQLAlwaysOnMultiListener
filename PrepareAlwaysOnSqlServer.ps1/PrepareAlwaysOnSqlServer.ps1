@@ -19,7 +19,8 @@ configuration PrepareAlwaysOnSqlServer
         [String]$SqlAlwaysOnEndpointName,
 
         [UInt32]$DatabaseEnginePort1 = 1433,
-        [UInt32]$DatabaseEnginePort1 = 1434,
+        
+        [UInt32]$DatabaseEnginePort2 = 1434,
 
         [String]$DomainNetbiosName=(Get-NetBIOSName -DomainName $DomainName),
 
@@ -137,10 +138,10 @@ configuration PrepareAlwaysOnSqlServer
             Ensure = "Present"
         }
 
-        xFirewall ListenerFirewallRule
+        xFirewall ListenerFirewallRule1
         {
             Direction = "Inbound"
-            Name = "SQL-Server-Availability-Group-Listener-TCP-In"
+            Name = "SQL-Server-Availability-Group-Listener-TCP-In-1"
             DisplayName = "SQL Server Availability Group Listener (TCP-In)"
             Description = "Inbound rule for SQL Server to allow TCP traffic for the Availability Group listener."
             DisplayGroup = "SQL Server"
@@ -148,6 +149,20 @@ configuration PrepareAlwaysOnSqlServer
             Access = "Allow"
             Protocol = "TCP"
             LocalPort = "59999"
+            Ensure = "Present"
+        }
+
+        xFirewall ListenerFirewallRule2
+        {
+            Direction = "Inbound"
+            Name = "SQL-Server-Availability-Group-Listener-TCP-In-2"
+            DisplayName = "SQL Server Availability Group Listener (TCP-In)"
+            Description = "Inbound rule for SQL Server to allow TCP traffic for the Availability Group listener."
+            DisplayGroup = "SQL Server"
+            State = "Enabled"
+            Access = "Allow"
+            Protocol = "TCP"
+            LocalPort = "59998"
             Ensure = "Present"
         }
 
