@@ -120,21 +120,12 @@ configuration CreateFailoverCluster
         {
             Name = "Failover-Clustering"
             Ensure = "Present"
-            DependsOn = "[cDiskNoRestart]LogDisk"
         }
-
-        WindowsFeature FailoverClusterTools 
-        { 
-            Ensure = "Present" 
-            Name = "RSAT-Clustering-Mgmt"
-			DependsOn = "[WindowsFeature]FC"
-        } 
-        
+      
         WindowsFeature FCPS
         {
             Name = "RSAT-Clustering-PowerShell"
             Ensure = "Present"
-            DependsOn = "[WindowsFeature]FC"
         }
 
         WindowsFeature ADPS
@@ -143,21 +134,11 @@ configuration CreateFailoverCluster
             Ensure = "Present"
         }
 
-        xWaitForADDomain DscForestWait
-        {
-            DomainName = $DomainName
-            DomainUserCredential= $DomainCreds
-            RetryCount = $RetryCount
-            RetryIntervalSec = $RetryIntervalSec
-            DependsOn = "[WindowsFeature]ADPS"
-        }
-
         xComputer DomainJoin
         {
             Name = $env:COMPUTERNAME
             DomainName = $DomainName
             Credential = $DomainCreds
-            DependsOn = "[xWaitForADDomain]DscForestWait"
         }
 
         xCluster FailoverCluster
@@ -168,19 +149,12 @@ configuration CreateFailoverCluster
             DependsOn = "[xComputer]DomainJoin"
         }
 
-        xWaitForFileShareWitness WaitForFSW
-        {
-            SharePath = $SharePath
-            DomainAdministratorCredential = $DomainCreds
-            DependsOn = "[xCluster]FailoverCluster"
-        }
-
         xClusterQuorum FailoverClusterQuorum
         {
             Name = $ClusterName
             SharePath = $SharePath
             DomainAdministratorCredential = $DomainCreds
-            DependsOn = "[xWaitForFileShareWitness]WaitForFSW"
+            DependsOn = "[xCluster]FailoverCluster"
         }
 
         Script DisableStorageClustering
@@ -188,7 +162,6 @@ configuration CreateFailoverCluster
             SetScript =  "Get-StorageSubsystem -FriendlyName 'Clustered Storage Spaces*' | Set-StorageSubSystem -AutomaticClusteringEnabled `$False"
             TestScript = "!(Get-StorageSubsystem -FriendlyName 'Clustered Storage Spaces*').AutomaticClusteringEnabled"
             GetScript = "@{Ensure = if (!(Get-StorageSubsystem -FriendlyName 'Clustered Storage Spaces*').AutomaticClusteringEnabled) {'Present'} else {'Absent'}}"
-            DependsOn = "[xClusterQuorum]FailoverClusterQuorum"
         }
 
         Script IncreaseClusterTimeouts
@@ -196,7 +169,6 @@ configuration CreateFailoverCluster
             SetScript = "(Get-Cluster).SameSubnetDelay = 2000; (Get-Cluster).SameSubnetThreshold = 15; (Get-Cluster).CrossSubnetDelay = 3000; (Get-Cluster).CrossSubnetThreshold = 15"
             TestScript = "(Get-Cluster).SameSubnetDelay -eq 2000 -and (Get-Cluster).SameSubnetThreshold -eq 15 -and (Get-Cluster).CrossSubnetDelay -eq 3000 -and (Get-Cluster).CrossSubnetThreshold -eq 15"
             GetScript = "@{Ensure = if ((Get-Cluster).SameSubnetDelay -eq 2000 -and (Get-Cluster).SameSubnetThreshold -eq 15 -and (Get-Cluster).CrossSubnetDelay -eq 3000 -and (Get-Cluster).CrossSubnetThreshold -eq 15) {'Present'} else {'Absent'}}"
-            DependsOn = "[Script]DisableStorageClustering"
         }
 
         xFirewall DatabaseEngineFirewallRule1
@@ -211,7 +183,6 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $SqlAlwaysOnAvailabilityGroupListenerPort1 -as [String]
             Ensure = "Present"
-            DependsOn = "[Script]IncreaseClusterTimeouts"
         }
         
         xFirewall DatabaseEngineFirewallRule2
@@ -226,7 +197,6 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $SqlAlwaysOnAvailabilityGroupListenerPort2 -as [String]
             Ensure = "Present"
-            DependsOn = "[xFirewall]DatabaseEngineFirewallRule1"
         }
 
         xFirewall DatabaseMirroringFirewallRule
@@ -241,7 +211,6 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = "5022"
             Ensure = "Present"
-            DependsOn = "[xFirewall]DatabaseEngineFirewallRule2"
         }
 
         xFirewall ListenerProbeFirewallRule1
@@ -256,7 +225,6 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $sqlAlwaysOnAvailabilityGroupListenerProbePort1 -as [String]
             Ensure = "Present"
-            DependsOn = "[xFirewall]DatabaseMirroringFirewallRule"
         }
 
         xFirewall ListenerProbeFirewallRule2
@@ -271,7 +239,6 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $sqlAlwaysOnAvailabilityGroupListenerProbePort2 -as [String]
             Ensure = "Present"
-            DependsOn = "[xFirewall]ListenerProbeFirewallRule1"
         }
 
         xSqlLogin AddDomainAdminAccountToSysadminServerRole
@@ -281,7 +248,7 @@ configuration CreateFailoverCluster
             ServerRoles = "sysadmin"
             Enabled = $true
             Credential = $Admincreds
-            DependsOn = "[xFirewall]ListenerProbeFirewallRule2"
+            DependsOn = "[xComputer]DomainJoin"
         }
 
         xADUser CreateSqlServerServiceAccount
@@ -291,7 +258,7 @@ configuration CreateFailoverCluster
             UserName = $SQLServicecreds.UserName
             Password = $SQLServicecreds
             Ensure = "Present"
-            DependsOn = "[xSqlLogin]AddDomainAdminAccountToSysadminServerRole"
+            DependsOn = "[xComputer]DomainJoin"
         }
 
         xSqlLogin AddSqlServerServiceAccountToSysadminServerRole
@@ -301,7 +268,7 @@ configuration CreateFailoverCluster
             ServerRoles = "sysadmin"
             Enabled = $true
             Credential = $Admincreds
-            DependsOn = "[xADUser]CreateSqlServerServiceAccount"
+            DependsOn = @("[xADUser]CreateSqlServerServiceAccount","[xSqlLogin]AddDomainAdminAccountToSysadminServerRole")
         }
 
         xSqlServer ConfigureSqlServerWithAlwaysOn

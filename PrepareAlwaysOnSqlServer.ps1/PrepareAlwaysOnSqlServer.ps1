@@ -1,5 +1,5 @@
 #
-# Copyright="© Microsoft Corporation. All rights reserved."
+# Copyright="ï¿½ Microsoft Corporation. All rights reserved."
 #
 
 configuration PrepareAlwaysOnSqlServer
@@ -18,7 +18,8 @@ configuration PrepareAlwaysOnSqlServer
         [Parameter(Mandatory)]
         [String]$SqlAlwaysOnEndpointName,
 
-        [UInt32]$DatabaseEnginePort = 1433,
+        [UInt32]$DatabaseEnginePort1 = 1433,
+        [UInt32]$DatabaseEnginePort1 = 1434,
 
         [String]$DomainNetbiosName=(Get-NetBIOSName -DomainName $DomainName),
 
@@ -78,6 +79,7 @@ configuration PrepareAlwaysOnSqlServer
             Name = "RSAT-AD-PowerShell"
             Ensure = "Present"
         }
+
         xWaitForADDomain DscForestWait 
         { 
             DomainName = $DomainName 
@@ -85,23 +87,39 @@ configuration PrepareAlwaysOnSqlServer
             RetryCount = $RetryCount 
             RetryIntervalSec = $RetryIntervalSec 
         }
+
         xComputer DomainJoin
         {
             Name = $env:COMPUTERNAME
             DomainName = $DomainName
             Credential = $DomainCreds
         }
-        xFirewall DatabaseEngineFirewallRule
+
+        xFirewall DatabaseEngineFirewallRule1
         {
             Direction = "Inbound"
-            Name = "SQL-Server-Database-Engine-TCP-In"
+            Name = "SQL-Server-Database-Engine-TCP-In-1"
             DisplayName = "SQL Server Database Engine (TCP-In)"
             Description = "Inbound rule for SQL Server to allow TCP traffic for the Database Engine."
             DisplayGroup = "SQL Server"
             State = "Enabled"
             Access = "Allow"
             Protocol = "TCP"
-            LocalPort = $DatabaseEnginePort -as [String]
+            LocalPort = $DatabaseEnginePort1 -as [String]
+            Ensure = "Present"
+        }
+
+        xFirewall DatabaseEngineFirewallRule2
+        {
+            Direction = "Inbound"
+            Name = "SQL-Server-Database-Engine-TCP-In-2"
+            DisplayName = "SQL Server Database Engine (TCP-In)"
+            Description = "Inbound rule for SQL Server to allow TCP traffic for the Database Engine."
+            DisplayGroup = "SQL Server"
+            State = "Enabled"
+            Access = "Allow"
+            Protocol = "TCP"
+            LocalPort = $DatabaseEnginePort2 -as [String]
             Ensure = "Present"
         }
 
@@ -181,6 +199,7 @@ configuration PrepareAlwaysOnSqlServer
 
     }
 }
+
 function Get-NetBIOSName
 { 
     [OutputType([string])]
@@ -204,6 +223,7 @@ function Get-NetBIOSName
         }
     }
 }
+
 function WaitForSqlSetup
 {
     # Wait for SQL Server Setup to finish before proceeding.
