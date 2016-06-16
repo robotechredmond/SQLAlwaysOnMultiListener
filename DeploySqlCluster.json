@@ -484,7 +484,8 @@
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines',concat(variables('sqlNamePrefix'),'0'))]",
-				"[resourceId('Microsoft.Compute/virtualMachines',concat(variables('sqlNamePrefix'),'1'))]"
+				"[resourceId('Microsoft.Compute/virtualMachines',concat(variables('sqlNamePrefix'),'1'))]",
+				"[variables('deploySqlWitnessShareId')]"
       ],
       "properties": {
         "mode": "Incremental",
