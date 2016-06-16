@@ -72,7 +72,8 @@ configuration CreateFailoverCluster
 
     )
 
-    Import-DscResource -ModuleName xComputerManagement, xFailOverCluster,CDisk,xActiveDirectory,XDisk,xSqlPs,xNetworking, xSql, xSQLServer
+    Import-DscResource -ModuleName xComputerManagement,xFailOverCluster,cDisk,xActiveDirectory,xDisk,xSqlPs,xNetworking,xSql,xSQLServer
+
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$DomainFQDNCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$SQLCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($SQLServiceCreds.UserName)", $SQLServiceCreds.Password)
@@ -98,6 +99,7 @@ configuration CreateFailoverCluster
         {
             DiskNumber = 2
             DriveLetter = "F"
+            DependsOn = "[xWaitforDisk]Disk2"
         }
 
         xWaitforDisk Disk3
@@ -111,18 +113,28 @@ configuration CreateFailoverCluster
         {
             DiskNumber = 3
             DriveLetter = "G"
+            DependsOn = "[xWaitforDisk]Disk3"
         }
 
         WindowsFeature FC
         {
             Name = "Failover-Clustering"
             Ensure = "Present"
+            DependsOn = "[cDiskNoRestart]LogDisk"
         }
 
+        WindowsFeature FailoverClusterTools 
+        { 
+            Ensure = "Present" 
+            Name = "RSAT-Clustering-Mgmt"
+			DependsOn = "[WindowsFeature]FC"
+        } 
+        
         WindowsFeature FCPS
         {
             Name = "RSAT-Clustering-PowerShell"
             Ensure = "Present"
+            DependsOn = "[WindowsFeature]FC"
         }
 
         WindowsFeature ADPS
@@ -130,30 +142,37 @@ configuration CreateFailoverCluster
             Name = "RSAT-AD-PowerShell"
             Ensure = "Present"
         }
+
         xWaitForADDomain DscForestWait
         {
             DomainName = $DomainName
             DomainUserCredential= $DomainCreds
             RetryCount = $RetryCount
             RetryIntervalSec = $RetryIntervalSec
+            DependsOn = "[WindowsFeature]ADPS"
         }
+
         xComputer DomainJoin
         {
             Name = $env:COMPUTERNAME
             DomainName = $DomainName
             Credential = $DomainCreds
+            DependsOn = "[xWaitForADDomain]DscForestWait"
         }
+
         xCluster FailoverCluster
         {
             Name = $ClusterName
             DomainAdministratorCredential = $DomainCreds
             Nodes = $Nodes
+            DependsOn = "[xComputer]DomainJoin"
         }
 
         xWaitForFileShareWitness WaitForFSW
         {
             SharePath = $SharePath
             DomainAdministratorCredential = $DomainCreds
+            DependsOn = "[xCluster]FailoverCluster"
         }
 
         xClusterQuorum FailoverClusterQuorum
@@ -161,6 +180,7 @@ configuration CreateFailoverCluster
             Name = $ClusterName
             SharePath = $SharePath
             DomainAdministratorCredential = $DomainCreds
+            DependsOn = "[xWaitForFileShareWitness]WaitForFSW"
         }
 
         Script DisableStorageClustering
@@ -191,6 +211,7 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $SqlAlwaysOnAvailabilityGroupListenerPort1 -as [String]
             Ensure = "Present"
+            DependsOn = "[Script]IncreaseClusterTimeouts"
         }
         
         xFirewall DatabaseEngineFirewallRule2
@@ -205,6 +226,7 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $SqlAlwaysOnAvailabilityGroupListenerPort2 -as [String]
             Ensure = "Present"
+            DependsOn = "[xFirewall]DatabaseEngineFirewallRule1"
         }
 
         xFirewall DatabaseMirroringFirewallRule
@@ -219,6 +241,7 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = "5022"
             Ensure = "Present"
+            DependsOn = "[xFirewall]DatabaseEngineFirewallRule2"
         }
 
         xFirewall ListenerProbeFirewallRule1
@@ -233,6 +256,7 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $sqlAlwaysOnAvailabilityGroupListenerProbePort1 -as [String]
             Ensure = "Present"
+            DependsOn = "[xFirewall]DatabaseMirroringFirewallRule"
         }
 
         xFirewall ListenerProbeFirewallRule2
@@ -247,6 +271,7 @@ configuration CreateFailoverCluster
             Protocol = "TCP"
             LocalPort = $sqlAlwaysOnAvailabilityGroupListenerProbePort2 -as [String]
             Ensure = "Present"
+            DependsOn = "[xFirewall]ListenerProbeFirewallRule1"
         }
 
         xSqlLogin AddDomainAdminAccountToSysadminServerRole
@@ -256,6 +281,7 @@ configuration CreateFailoverCluster
             ServerRoles = "sysadmin"
             Enabled = $true
             Credential = $Admincreds
+            DependsOn = "[xFirewall]ListenerProbeFirewallRule2"
         }
 
         xADUser CreateSqlServerServiceAccount
@@ -307,7 +333,7 @@ configuration CreateFailoverCluster
             SqlAdministratorCredential = $Admincreds
             Hadr = "Enabled"
             DomainAdministratorCredential = $DomainFQDNCreds
-	    DependsOn = "[xSqlEndPoint]SqlAlwaysOnEndpoint"
+	        DependsOn = "[xSqlEndPoint]SqlAlwaysOnEndpoint"
         }
 
         xSqlEndpoint SqlSecondaryAlwaysOnEndpoint
@@ -328,7 +354,7 @@ configuration CreateFailoverCluster
             PortNumber = 5022
             DomainCredential =$DomainCreds
             SqlAdministratorCredential = $Admincreds
-	    DependsOn = "[xSqlEndpoint]SqlSecondaryAlwaysOnEndpoint"
+	        DependsOn = "[xSqlEndpoint]SqlSecondaryAlwaysOnEndpoint"
         }
         
         xSqlAvailabilityGroup SqlAG2
@@ -339,7 +365,7 @@ configuration CreateFailoverCluster
             PortNumber = 5022
             DomainCredential =$DomainCreds
             SqlAdministratorCredential = $Admincreds
-	    DependsOn = "[xSqlAvailabilityGroup]SqlAG1"
+	        DependsOn = "[xSqlAvailabilityGroup]SqlAG1"
         }
 
         xSQLAddListenerIPToDNS UpdateDNSServer1
@@ -349,6 +375,7 @@ configuration CreateFailoverCluster
             LBAddress=$LBAddress1
             DomainName=$DomainName
             DNSServerName=$DNSServerName
+            DependsOn = "[xSqlAvailabilityGroup]SqlAG2"
         }
         
         xSQLAddListenerIPToDNS UpdateDNSServer2
@@ -358,6 +385,7 @@ configuration CreateFailoverCluster
             LBAddress=$LBAddress2
             DomainName=$DomainName
             DNSServerName=$DNSServerName
+            DependsOn = "[xSQLAddListenerIPToDNS]UpdateDNSServer1"
         }
 
         xSqlAvailabilityGroupListener SqlAGListener1
@@ -371,7 +399,7 @@ configuration CreateFailoverCluster
             InstanceName = $env:COMPUTERNAME
             DomainCredential =$DomainCreds
             SqlAdministratorCredential = $Admincreds
-            DependsOn = @("[xSqlAvailabilityGroup]SqlAG1","[xSQLAddListenerIPToDNS]UpdateDNSServer1")
+            DependsOn = "[xSQLAddListenerIPToDNS]UpdateDNSServer2"
         }
 
         xSqlAvailabilityGroupListener SqlAGListener2
@@ -385,7 +413,7 @@ configuration CreateFailoverCluster
             InstanceName = $env:COMPUTERNAME
             DomainCredential =$DomainCreds
             SqlAdministratorCredential = $Admincreds
-            DependsOn = @("[xSqlAvailabilityGroup]SqlAG2","[xSQLAddListenerIPToDNS]UpdateDNSServer2")
+            DependsOn = "[xSqlAvailabilityGroupListener]SqlAGListener1"
         }
 
         LocalConfigurationManager
@@ -396,6 +424,7 @@ configuration CreateFailoverCluster
     }
 
 }
+
 function Update-DNS
 {
     param(
@@ -411,6 +440,7 @@ function Update-DNS
             Add-DnsServerResourceRecordA -Name $LBName -ZoneName $DomainName -IPv4Address $LBAddress
         }
 }
+
 function WaitForSqlSetup
 {
     # Wait for SQL Server Setup to finish before proceeding.
@@ -427,6 +457,7 @@ function WaitForSqlSetup
         }
     }
 }
+
 function Get-NetBIOSName
 {
     [OutputType([string])]
@@ -450,6 +481,7 @@ function Get-NetBIOSName
         }
     }
 }
+
 function Enable-CredSSPNTLM
 {
     param(
