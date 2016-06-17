@@ -2,6 +2,64 @@
 # Copyright="� Microsoft Corporation. All rights reserved."
 #
 
+configuration PrepareForSQLAlwaysOn
+{
+    param
+    (
+
+        [Int]$RetryCount=20,
+        
+        [Int]$RetryIntervalSec=30
+
+    )
+
+    xWaitforDisk Disk2
+        {
+             DiskNumber = 2
+             RetryIntervalSec =$RetryIntervalSec
+             RetryCount = $RetryCount
+        }
+
+        cDiskNoRestart DataDisk
+        {
+            DiskNumber = 2
+            DriveLetter = "F"
+            DependsOn = "[xWaitforDisk]Disk2"
+        }
+
+        xWaitforDisk Disk3
+        {
+             DiskNumber = 3
+             RetryIntervalSec =$RetryIntervalSec
+             RetryCount = $RetryCount
+        }
+
+        cDiskNoRestart LogDisk
+        {
+            DiskNumber = 3
+            DriveLetter = "G"
+            DependsOn = "[xWaitforDisk]Disk3"
+        }
+
+        WindowsFeature FC
+        {
+            Name = "Failover-Clustering"
+            Ensure = "Present"
+        }
+      
+        WindowsFeature FCPS
+        {
+            Name = "RSAT-Clustering-PowerShell"
+            Ensure = "Present"
+        }
+
+        WindowsFeature ADPS
+        {
+            Name = "RSAT-AD-PowerShell"
+            Ensure = "Present"
+        }
+}
+
 configuration CreateFailoverCluster
 {
     param
@@ -88,51 +146,7 @@ configuration CreateFailoverCluster
     Node localhost
     {
 
-        xWaitforDisk Disk2
-        {
-             DiskNumber = 2
-             RetryIntervalSec =$RetryIntervalSec
-             RetryCount = $RetryCount
-        }
-
-        cDiskNoRestart DataDisk
-        {
-            DiskNumber = 2
-            DriveLetter = "F"
-            DependsOn = "[xWaitforDisk]Disk2"
-        }
-
-        xWaitforDisk Disk3
-        {
-             DiskNumber = 3
-             RetryIntervalSec =$RetryIntervalSec
-             RetryCount = $RetryCount
-        }
-
-        cDiskNoRestart LogDisk
-        {
-            DiskNumber = 3
-            DriveLetter = "G"
-            DependsOn = "[xWaitforDisk]Disk3"
-        }
-
-        WindowsFeature FC
-        {
-            Name = "Failover-Clustering"
-            Ensure = "Present"
-        }
-      
-        WindowsFeature FCPS
-        {
-            Name = "RSAT-Clustering-PowerShell"
-            Ensure = "Present"
-        }
-
-        WindowsFeature ADPS
-        {
-            Name = "RSAT-AD-PowerShell"
-            Ensure = "Present"
-        }
+        PrepareForSQLAlwaysOn BaseNodeConfig {}
 
         xComputer DomainJoin
         {
