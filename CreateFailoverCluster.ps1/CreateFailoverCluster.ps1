@@ -13,6 +13,8 @@ configuration PrepareForSQLAlwaysOn
 
     )
 
+    Import-DscResource -ModuleName cDisk,xDisk
+
     xWaitforDisk Disk2
         {
              DiskNumber = 2
@@ -130,7 +132,7 @@ configuration CreateFailoverCluster
 
     )
 
-    Import-DscResource -ModuleName xComputerManagement,xFailOverCluster,cDisk,xActiveDirectory,xDisk,xSqlPs,xNetworking,xSql,xSQLServer
+    Import-DscResource -ModuleName xComputerManagement,xFailOverCluster,xActiveDirectory,xSqlPs,xNetworking,xSql,xSQLServer
 
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$DomainFQDNCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
