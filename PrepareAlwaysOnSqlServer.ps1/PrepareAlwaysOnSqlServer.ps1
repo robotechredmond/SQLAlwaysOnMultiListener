@@ -63,21 +63,9 @@ configuration PrepareAlwaysOnSqlServer
             DriveLetter = "G"
         }
 
-        WindowsFeature FC
+        WindowsFeatureSet FC
         {
-            Name = "Failover-Clustering"
-            Ensure = "Present"
-        }
-
-        WindowsFeature FCPS
-        {
-            Name = "RSAT-Clustering-PowerShell"
-            Ensure = "Present"
-        }
-
-        WindowsFeature ADPS
-        {
-            Name = "RSAT-AD-PowerShell"
+            Name = @("Failover-Clustering","RSAT-Clustering-PowerShell","RSAT-AD-PowerShell","RSAT-Clustering-Mgmt")
             Ensure = "Present"
         }
 

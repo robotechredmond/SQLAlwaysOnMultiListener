@@ -116,24 +116,12 @@ configuration CreateFailoverCluster
             DependsOn = "[xWaitforDisk]Disk3"
         }
 
-        WindowsFeature FC
+        WindowsFeatureSet FC
         {
-            Name = "Failover-Clustering"
+            Name = @("Failover-Clustering","RSAT-Clustering-PowerShell","RSAT-AD-PowerShell","RSAT-Clustering-Mgmt")
             Ensure = "Present"
         }
       
-        WindowsFeature FCPS
-        {
-            Name = "RSAT-Clustering-PowerShell"
-            Ensure = "Present"
-        }
-
-        WindowsFeature ADPS
-        {
-            Name = "RSAT-AD-PowerShell"
-            Ensure = "Present"
-        }
-
         xComputer DomainJoin
         {
             Name = $env:COMPUTERNAME
